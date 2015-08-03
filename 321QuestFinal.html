@@ -335,12 +335,13 @@
 		<div id="createHunt" data-role="page">
 			<div data-role="content">
 				<center><h1>Create Hunt</h1>
+				<p style="font-size:20px;">Take a picture: </p>
 				<input type="file" id="pic" accept="image/*;capture=camera"><br>
 				<!--input type='text' id="recipientInput" placeholder='To'-->
+				<p style="font-size:20px;">Choose a friend to send it to!</p>
 				<select id="users2" data-inline="true"> <br>
 				</select></br>
-				<button onclick="saveSend(); showSent();" data-inline="true" data-theme="e">submit</button>
-				<br />
+				<a href="#menu" data-role="button" onclick="saveSend();" data-inline="true" data-theme="e">Submit</a>
 				<div id="image"></div><br>
 				<div id="chooseFriends"></div><br>
 				<a href="#menu" data-role="button" data-inline="true" data-theme="e">Back</a></center>
@@ -359,11 +360,451 @@
 		<div id="returnPic" data-role="page">
 			<div data-role="content">
 				<center><h1>Complete Hunt</h1>
+				<p style="font-size:20px;">Take a picture: </p>
 				<input type="file" id="browseReturnPic" accept="image/*;capture=camera"><br>
 				<!-- <input type='text' id="recipientReturnInput" placeholder='To:'> -->
-				<select id="users3"> <br>
+				<p style="font-size:20px;">Select the friend to return a picture!</p>
+				<select id="users3" data-inline="true"> <br>
 				</select></br>
-				<button onclick="saveReturn(); showReturn();" data-inline="true" data-theme="e">submit</button>
+				<a data-role="button" href="#menu" onclick="saveReturn();" data-inline="true" data-theme="e">submit</a>
+				<br />
+				<div id="imageReturn"></div><br>
+				<div id="chooseFriends"></div><br>
+				<a href="#myHunts" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+				#returnPic {
+								background: url("background2.0.png");
+								background-size: 100% 100%;
+								color: white;
+								font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		
+		<!--Photo gallery-->
+		<div id="myGallery" data-role="page">
+			<div data-role="content">
+				<center><h1>My Gallery</h1></center>
+				<center><ul id="galleryPictures" style="list-style-type: none"></ul></center>
+				<center><a href="#menu" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+				#myGallery {
+								background: url("Monkey.png");
+								background-size: 100% 100%;
+								color: yellow;
+								font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		
+ 		<!--Friends page(don't need this once we've added new code-->
+		<div id="myFriends" data-role="page">
+			<div data-role="content">
+				<center><h1>My Friends</h1></center>
+				<center><a href="#addFriend" data-role="button" data-inline="true" data-theme="e">Add Friend</a></center>
+				<ul id="friendsList"></ul>
+				<center><a href="#menu" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+				#myFriends {
+								background: url("background4.png");
+								background-size: 100% 100%;
+								color: white;
+								font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		
+		<div id="addFriend" data-role="page">
+			<div data-role="content">
+				<center><h1>Add Friend</h1></center>
+				<input id="friendUsername" type="text" name="friendUsername" placeholder="Friend username">
+				<button type="submit" onclick="addFriend();" data-inline="true" data-theme="e">Add</button> <br>
+				<center><a href="#menu" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+				#addFriend {
+								background: url("background4.png");
+								background-size: 100% 100%;
+								color: white;
+								font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		<!--END of friends stuff-->
+		
+	</body>
+<!DOCTYPE html> 
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
+		<title>3 2 1 Quest</title> 
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css" />
+		<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+		<script src='https://cdn.firebase.com/js/client/1.0.17/firebase.js'></script>
+		
+		<!-- FONTS -->
+		<link href='http://fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'>
+		
+		<script>
+		//The database
+		 var userDataBaseURL = 'https://userlist321.firebaseio.com/';//user database
+		 var userDataBase = new Firebase(userDataBaseURL);
+		 var imageDataBaseURL = 'https://images321.firebaseio.com/';//image database
+		 var imageDataBase = new Firebase(imageDataBaseURL);
+		 var returnImgDbURL = 'https://replyimages321.firebaseio.com/';
+		 var returnImgDatabase = new Firebase(returnImgDbURL);
+
+		 var usernameInput;//makes variable but unassigned
+		 var passwordInput;
+		 var picture; //Picture that will be saved
+		 var recipient;
+		 
+		 var userPass = {}; //Dictionaries of users with passwords
+		 function checkAccounts() { //updates by puting users and passwords in the userPass dictionary
+			userDataBase.on('child_added', function(snapshot) {
+				var newPost = snapshot.val();
+				userPass[newPost.username] = newPost.password;
+				}, function (errorObject) {
+				console.log('The read failed: ' + errorObject.code);
+				});
+		 }	 
+		 
+		function register() { //makes a new account
+			usernameInput = $('#username').val().toLowerCase();// not case-sensitive
+			passwordInput = $('#password').val();
+			
+			var usernameList = {}; 
+			userDataBase.on('child_added', function(snapshot) { //fills usernameList with username:username
+					var newPost = snapshot.val();
+					usernameList[newPost.username] = newPost.username;
+					}, function (errorObject) {
+					console.log('The read failed: ' + errorObject.code);
+					});
+			
+			if (usernameList[usernameInput] === usernameInput) { //checks to see if username taken yet
+				alert("Username already taken.");
+			}
+			else {
+				//Puts info into database
+				var usersRef = userDataBase.child(usernameInput);
+				usersRef.set({
+					username: usernameInput,
+					password: passwordInput,
+					friends: ["stephanie"]
+				});
+				$.mobile.changePage($('#menu'));//switches between pages
+				$('#greeting').text("Hello, " + usernameInput + "!"); //Greeting on main menu
+			}
+		}
+		
+		//Login
+		function login() {
+			var usernameValue = $('#usernameLogin').val().toLowerCase();
+			var passwordValue = $('#passwordLogin').val();
+						
+			checkAccounts();
+			if (userPass[usernameValue] === passwordValue) { //fix this with firebase
+				$.mobile.changePage($('#menu'));
+				usernameInput = usernameValue;
+				$('#greeting').text("Hello, " + usernameInput + "!"); //Greeting on main menu
+			}
+			else {
+				alert("Incorrect username or password.");
+			}
+		}
+		
+		function logout() { //logs out
+			console.log("Logout");
+			usernameInput = "";
+			myHuntsData = "";
+			currentUser = "";
+		}
+		
+		//Returning
+		function showReturn() { //shows the picture
+			$('#imageReturn').html("<img src='" + picture + "'>");//showing picture that you took on screen
+			//$('#pictures').append("<li><img src='" + picture + "'></li>");//storing picture in gallery
+		 }
+		 
+		var returnedHuntData;
+		function displayReturnedHunts(){
+			returnImgDatabase.on('child_added', function(snapshot) {
+				returnedHuntData = snapshot.val(); //get the message back from DB
+				//console.log(message);
+				checkInfo(returnedHuntData.sender, returnedHuntData.picture, returnedHuntData.recipient);
+			});
+			
+			function checkInfo(sender, picture, recipient) {
+				//console.log("Sender: "+ sender);
+				//console.log("usernameInput: "+usernameInput);
+				//console.log("recipient: "+recipient);
+				if (recipient === usernameInput){
+					$('<div/>').prepend('<div id="apple">To: ' + recipient + '<br> From: ' + sender + '<br>' + '<img src= "' + picture + '" /> <br> <button type="submit" onclick="deletePicReturned();">Yes</button> <button type="submit" onclick="deletePicReturned();">No</button></div>').appendTo($('#returnedHunts'));
+				}else{
+					console.log("No pictures!");
+				}
+			}
+		}
+		
+		function deletePicReturned() {
+			$("div").remove("#apple");
+			
+			returnImgDatabase.on('child_added', function(snapshot) {
+				returnedHuntData = snapshot.val(); //get the message back from DB
+				returnImgDatabase.remove();
+				//checkInfo(returnedHuntData.sender, returnedHuntData.picture, returnedHuntData.recipient);
+			});
+			
+		}
+		
+		function myHuntsBackButton() { 
+			$('#currentHunts').text("");
+		}
+		 
+	  
+		function saveReturn() { //puts file name into database
+			picture = $('#browseReturnPic').val(); 
+			picture = picture.substring(12);//takes away "fake path"
+			recipient = $( "#users3 option:selected" ).text();
+			returnImgDatabase.push({
+				picture: picture,
+				recipient: recipient,
+				sender: usernameInput
+			});
+			console.log(picture);
+		}
+		
+		//Dropdown menu for when return pic
+		function userListReturn(){
+			userDataBase.on('child_added', function(snapshot) { //fills usernameList with username:username
+				var newPost = snapshot.val();
+				var newUser  =  newPost.username;
+				$('#users3').append('<option value = \"' + newUser + '\" id="' + newUser +'">' + newUser+ '</option>"');
+			});
+		}
+		userListReturn();
+		
+		//Sending
+		function showSent() { //shows the picture
+			$('#image').html("<img src='" + picture + "'>");//showing picture that you took on screen
+			//$('#pictures').append("<li><img src='" + picture + "'></li>");//storing picture in gallery
+		 }
+	  
+		function saveSend() { //puts file name into database
+			picture = $('#pic').val(); 
+			picture = picture.substring(12);//takes away "fake path"
+			//assigns the picture to variable
+			var theChosenOne = $( "#users2 option:selected" ).text();
+			recipient = theChosenOne;
+			imageDataBase.push({
+				picture: picture,
+				recipient: recipient,
+				sender: usernameInput
+			});
+		}
+		
+		//Drop down menu for sending hunt
+		function userList(){
+			userDataBase.on('child_added', function(snapshot) { //fills usernameList with username:username
+				var newPost = snapshot.val();
+				var newUser  =  newPost.username;
+				$('#users2').append('<option value = \"' + newUser + '\" id="' + newUser +'">' + newUser+ '</option>"');
+			});
+		}
+		userList();
+		
+		 
+		function addFriend() {
+			var addedFriend = $('#friendUsername').val();
+			var usernameList = {}; //all usernames
+			userDataBase.on('child_added', function(snapshot) { //fills usernameList with username:username
+					var newPost = snapshot.val(); //2ND COPY !!! MAKE IT A FUNCTION
+					usernameList[newPost.username] = newPost.username;
+					}, function (errorObject) {
+					console.log('The read failed: ' + errorObject.code);
+					});
+					
+			if (addedFriend.toLowerCase() === usernameList[addedFriend]) {
+				alert("Friends!");
+				//ADD FRIENDS TO FRIENDS LIST
+			}
+			else {
+				alert("Username does not exist.");
+			}
+		}
+		
+		var myHuntsData; //display all hunts
+		function displayMyHunts(){
+			imageDataBase.on('child_added', function(snapshot) {
+				myHuntsData = snapshot.val(); //get the message back from DB
+				//console.log(message);
+				checkInfo(myHuntsData.sender, myHuntsData.picture, myHuntsData.recipient);
+			});
+			
+			function checkInfo(sender, picture, recipient) {
+				console.log("Sender: "+ sender);
+				console.log("usernameInput: "+usernameInput);
+				console.log("recipient: "+recipient);
+				if (recipient === usernameInput){
+					$('<div/>').prepend('To: ' + recipient + '<br> From: ' + sender + '<br>' + '<a href="#returnPic"><img id="newpicture" src= "' + picture + '" /></a>').appendTo($('#currentHunts'));
+				}else{
+					console.log("No pictures!");
+				}
+			}
+		}
+		
+		function myHuntsBackButton() { //sets hunts back to none so it wont duplicate everytime
+			$('#currentHunts').text("");
+		}
+		
+		
+		
+		
+		//PUTS IMAGES IN GALLERY
+		imageDataBase.on('child_added', function(snapshot) { //out here so that gallery is not changed everytime myhunt is clicked.
+			myHuntsData = snapshot.val();
+			displayGallery(myHuntsData.sender, myHuntsData.picture);
+		});
+		function displayGallery(sender, picture) {
+				$('<div/>').prepend('<img id="newpicture" src= "' + picture + '" />').appendTo($('#galleryPictures'));				
+		};
+		
+		</script>
+	</head>
+	<body>
+		<!--Makes welcome page-->
+		<div data-role="page" id="welcome">
+			<div data-role="content">
+				<bgcolor="#007A00">
+				<center><a href="#login" data-role="button" data-inline="true" style="margin-top:400px" data-theme="e">Login</a></center>
+				<style>
+				#welcome{
+					background: url(321QuestHomeScreen.png);
+					background-size: 100% 100%;
+					font-family: 'Lobster', cursive;
+				</style>
+			</div>
+		</div>
+		
+		<!--Login page-->
+		<div id="login" data-role="page">
+			<div data-role="content" >
+				<center><h1>Login</h1></center>
+				<input id="usernameLogin" type="text" name="user" placeholder="Username"><br>
+				<input id="passwordLogin" type="password" placeholder="Password"><br>
+				<button type="submit" onclick="login();" data-inline="true"data-theme="e">Submit</button><br>
+				<center><a href="#register" data-role="button" data-inline="true" data-theme="e">Register</a><br>
+				<a href="#welcome" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+					#login{
+							background: url("321Graphic.png");
+							background-size: 100% 100%;
+							font-family: 'Lobster', cursive;
+						}
+				</style>
+			</div>
+			</form>
+		</div>
+		
+		<!--Registration page-->
+		<div id="register" data-role="page">
+			<div data-role="content" >
+				<center><h1>Register</h1></center>
+				<input id="username" type="text" name="user" placeholder="Username"><br>
+				<input id="password" type="password" name="user" placeholder="Password"><br>
+				<button type="submit" onclick="register();" data-inline="true" data-theme="e">Submit</button>
+				<center><a href="#welcome" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				</form>
+				<style>
+				#register{
+					background: url(background.png);
+					background-size: 100% 100%;
+					font-family: 'Lobster', cursive;
+				}
+				</style>
+			</div>
+		</div>
+		
+		<!--Makes menu page-->
+		<div data-role="page" id="menu">
+			<div data-role="content">
+				<center><div id="greeting" style="font-size:25px"></div>
+				<p style="font-family: 'Lobster', cursive; font-size:50px;">Menu</p>
+				<a href="#myHunts" data-role="button" data-inline="true" onclick="displayMyHunts();displayReturnedHunts();" data-theme="e">My Hunts</a><br>
+				<a href="#createHunt" data-role="button" data-inline="true" data-theme="e">Create Hunt</a><br>
+				<a href="#myGallery" data-role="button" data-inline="true" data-theme="e">Gallery</a><br>
+				<a href="#myFriends" data-role="button" data-inline="true" onclick="showFriends()" data-theme="e">Friends</a><br>
+				<a href="#welcome" data-role="button" data-inline="true" onclick="logout()" data-theme="e">Logout</a></center>
+				<style>
+					#menu {
+							background: url("321QuestFishIcon.png");
+							background-size: 100% 100%;
+							font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		
+		<!--My Hunts page-->
+		<div id="myHunts" data-role="page">
+			<div data-role="content">
+				<center><h1 style="font-family: 'Lobster', cursive;">My Hunts</h1>
+				<h5>Current Challenges</h5>
+				<div id="currentHunts"></div> <!-- Hunts sent --> <br>
+				<h5>Returned Hunts</h5>
+				<div id="returnedHunts"></div> <!-- Hunts returned -->
+				<a href="#menu" data-role="button" data-inline="true" onclick="myHuntsBackButton()" data-theme="e">Back</a></center>
+				<style>
+					#myHunts {
+								background: url("background2.0.png");
+								background-size: 100% 100%;
+								color: white;
+					}
+				</style>
+			</div>
+		</div>
+		
+		<!--Create hunt page-->
+		<div id="createHunt" data-role="page">
+			<div data-role="content">
+				<center><h1>Create Hunt</h1>
+				<p style="font-size:20px;">Take a picture: </p>
+				<input type="file" id="pic" accept="image/*;capture=camera"><br>
+				<!--input type='text' id="recipientInput" placeholder='To'-->
+				<p style="font-size:20px;">Choose a friend to send it to!</p>
+				<select id="users2" data-inline="true"> <br>
+				</select></br>
+				<a href="#menu" data-role="button" onclick="saveSend();" data-inline="true" data-theme="e">Submit</a>
+				<div id="image"></div><br>
+				<div id="chooseFriends"></div><br>
+				<a href="#menu" data-role="button" data-inline="true" data-theme="e">Back</a></center>
+				<style>
+				#createHunt {
+								background: url("321UnicornGraphicV.png");
+								background-size: 100% 100%;
+								color: Magenta;
+								font-family: 'Lobster', cursive;
+					}
+				</style>
+			</div>
+		</div>
+		
+		<!--Page where you return picture-->
+		<div id="returnPic" data-role="page">
+			<div data-role="content">
+				<center><h1>Complete Hunt</h1>
+				<p style="font-size:20px;">Take a picture: </p>
+				<input type="file" id="browseReturnPic" accept="image/*;capture=camera"><br>
+				<!-- <input type='text' id="recipientReturnInput" placeholder='To:'> -->
+				<p style="font-size:20px;">Select the friend to return a picture!</p>
+				<select id="users3" data-inline="true"> <br>
+				</select></br>
+				<a data-role="button" href="#menu" onclick="saveReturn();" data-inline="true" data-theme="e">submit</a>
 				<br />
 				<div id="imageReturn"></div><br>
 				<div id="chooseFriends"></div><br>
