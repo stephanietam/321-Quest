@@ -5,4 +5,4 @@ Using this app, you can play a games of scavenger hunts with your friends. Chall
 
 321QuestFinal.html is the file to open for the app. 
 
-Photos meant to send to others must be within the folder in order for it to properly work. 
+Photos meant to send to others must be within the folder in order for it to properly work.
