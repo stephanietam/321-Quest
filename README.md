@@ -5,4 +5,9 @@ Using this app, you can play a games of scavenger hunts with your friends. Chall
 
 321QuestFinal.html is the file to open for the app. 
 
-Photos meant to send to others must be within the folder in order for it to properly work.
+- Make a personal account and add your friends.
+- Create hunts and choose people to challenge. 
+- View the current hunts you have and click on them to return the request. 
+- View all the sent pictures in the gallery.
+
+Photos meant to be sent to others must be within the app folder in order for it to properly work.
