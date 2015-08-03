@@ -10,4 +10,4 @@ Using this app, you can play a games of scavenger hunts with your friends. Chall
 - View the current hunts you have and click on them to return the request. 
 - View all the sent pictures in the gallery.
 
-Photos meant to be sent to others must be within the app folder in order for it to properly work.
+Photos meant to be sent to others must be saved within the app folder in order for it to properly work.
